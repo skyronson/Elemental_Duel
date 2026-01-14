@@ -634,12 +634,10 @@ class Player:
                             print(f"\nПОЛУЧЕНЫ НОВЫЕ КАРТЫ: ", end='')
 
                             for i, card in enumerate(self.hand[(-length):]):
-                                for color in colors.keys():
-                                    if color in card:
-                                        if i != length - 1:
-                                            print(colors[color] + card, end=', ')
-                                        else:
-                                            print(colors[color] + card, end='\n\n')
+                                if i != length - 1:
+                                    print(get_color(card) + card, end=', ')
+                                else:
+                                    print(get_color(card) + card, end='\n\n')
                             break  # ← ВАЖНО: ВЫХОДИМ ИЗ ЦИКЛА ПОСЛЕ УСПЕШНОЙ ЗАМЕНЫ
 
                         except ValueError:
