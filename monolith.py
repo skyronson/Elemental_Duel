@@ -53,8 +53,6 @@ roman_literas = {
 
 
 
-
-
 class Player:
     def __init__(self):
         self.name = ''                                   # Имя игрока
