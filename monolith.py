@@ -53,8 +53,6 @@ roman_literas = {
 
 
 
-
-
 class Player:
     def __init__(self):
         self.name = ''                                   # Имя игрока
@@ -1369,9 +1367,6 @@ for i in range(10):
     if i <= 7:
         player_1.hand.append(deck.pop())
     player_2.hand.append(deck.pop())
-
-# player_1.hand += ["ЗЕМЛЯ 5", "ВОДА 5", "ВОЗДУХ 5"]
-# player_2.hand += ["ВОДА 10", "ОГОНЬ 10"]
 
 """--------- НАЧАЛО ИГРЫ --------------------------------------------------------------------------------------------"""
 
