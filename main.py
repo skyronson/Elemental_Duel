@@ -12,6 +12,7 @@ def main():
     deck_obj = Deck()
     deck_obj.create_deck()
 
+    # Создание игроков
     p1 = Player()
     p2 = Player()
     p1.opponent = p2
