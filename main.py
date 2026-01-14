@@ -8,6 +8,7 @@ def main():
     elems = load_elements()
     roman = load_roman()
 
+    # Создание колоды
     deck_obj = Deck()
     deck_obj.create_deck()
 
