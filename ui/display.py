@@ -25,7 +25,6 @@ def show_new_cards_message(new_cards):
         print("\nКАЖДЫЙ ИГРОК ПОЛУЧАЕТ ДО 10 НОВЫХ КАРТ")
 
 
-
 def show_player_state(player, moves_counter):
     colors = load_elements()['colors']
     print(f"\n{moves_counter}. {'-'*20} {player.name} {'-'*300}\n")

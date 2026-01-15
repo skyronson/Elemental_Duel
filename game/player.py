@@ -33,7 +33,7 @@ class Player:
         self.last_effect = ""                            # Последний наложенный на игрока эффект
         self.is_shell_shocked = False                    # Статус эффекта «КОНТУЗИЯ»
         self.spells_counter = 0                          # Счётчик успешно применённых заклинаний
-        self.opponent = None
+        self.opponent = None                             # Указатель на противника
 
 
     def set_name(self):
