@@ -24,7 +24,6 @@ def main():
     for _ in range(8):
         p1.hand.append(deck_obj.deck.pop())
         p2.hand.append(deck_obj.deck.pop())
-    p1.hand.extend(["ВОДА 10", "ЗЕМЛЯ 10", "ВОЗДУХ 10", "ЗЕМЛЯ 10", "ОГОНЬ 10"])
     for _ in range(2):
         p2.hand.append(deck_obj.deck.pop())
 

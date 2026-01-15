@@ -638,7 +638,7 @@ class Player:
                             # Если все проверки пройдены - меняем карты
                             for card in chosen_cards:
                                 self.hand.remove(card)
-                                self.hand.extend(deck.draw_cards(1))
+                                self.hand.extend(deck.draw_cards(1, player=self))
 
                             print(f"\nПОЛУЧЕНЫ НОВЫЕ КАРТЫ: ", end='')
 
