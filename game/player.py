@@ -258,9 +258,18 @@ class Player:
             if "ЗЕМЛЕТРЯСЕНИЕ" in effect:
                 lvl = int(effect.split()[1])
                 if self.last_effect in effect and is_defended:
-                    self.opponent.status_effects.append(f"БАРЬЕР {lvl + 1}")
-                    print(f"Ваш урон снижается на {italic}{lvl + 1} ед.{reset} на этом ходу")
-                    self.status_effects.remove(effect)
+                    corrosion = math.ceil(lvl / 2)
+                    for i in range(len(self.hand)):
+                        try:
+                            card = self.hand[i]
+                            if card != '   ???   ':
+                                element, power = card.split()
+                                new_power = max(1, int(power) - corrosion)
+                                self.hand[i] = f"{element} {new_power}"
+                        except (ValueError, IndexError) as e:
+                            print(e)
+                            continue
+                    print(f"Ваши карты теряют {italic}{corrosion} ед. силы")
                 else:
                     self.hand = list(filter(lambda x: int(x.split()[1]) > (lvl + 1), self.hand))
                     print(f"Вы сбрасываете все карты {italic}силы {lvl + 1}{reset} или меньше")
@@ -295,7 +304,7 @@ class Player:
             new_cards = deck.draw_cards(10, player=self)
             self.hand.extend(new_cards)
             # Противник тоже берет карты
-            opponent_cards = deck.draw_cards(10, player=self)
+            opponent_cards = deck.draw_cards(10, player=self.opponent)
             self.opponent.hand.extend(opponent_cards)
             show_new_cards_message(new_cards)
 
@@ -498,7 +507,7 @@ class Player:
                             "🎯 Защита сработала - противник в ярости!",
                             "🎯 Вы отбили атаку как настоящий джедай!",
                             "🎯 Противник в шоке от вашей защиты!",
-                            "🎯 Вы сделали это красиво, как в кино!"
+                            "🎯 Вы сделали это красиво, как в кино!",
                             "🎯 Вы дали джазу противнику"
                         ]
                         print(f"{Fore.CYAN}{random.choice(defense_messages)}{reset}")
@@ -655,27 +664,19 @@ class Player:
 
         elif spell == "ГРЯЗЕВОЙ ПОТОП":
             lvl = round(((dmg - 1) // 5 + 1) * self.power_coeff)
-            treshold = 0
-            if dmg >= 18:
-                treshold = abs(8 - (dmg // 2))
             self.opponent.status_effects.append(f"ГРЯЗНУЛЯ {lvl}")
             self.opponent.last_effect = "ГРЯЗНУЛЯ"
             rgb = '\033[38;2;170;102;0m'
             print(f"Вы применили заклинание {Style.BRIGHT}{rgb}«{spell} {roman[str(lvl)]}»")
-            print(f"{Style.BRIGHT}ШТРАФ:{reset} Заменяет {italic}{lvl} шт. карт{reset} в колоде противника на ГРЯЗЬ с пониженными вдвое характеристиками")
+            print(f"{Style.BRIGHT}ПАССИВНЫЙ ЭФФЕКТ:{reset} Заполняет руку противника {italic}{lvl+1} картами {get_color('ГРЯЗЬ')}ГРЯЗИ")
+            print(f"{Style.BRIGHT}ШТРАФ:{reset} Заменяет {italic}{lvl} шт. карт{reset} в колоде противника на {italic}{get_color('ГРЯЗЬ')}ГРЯЗЬ{reset} с пониженными вдвое характеристиками")
 
-            if treshold and lvl != 0:
-                for i in range(len(self.opponent.hand)):
-                    try:
-                        card = self.opponent.hand[i]
-                        if card != '   ???   ':
-                            element, power = card.split()
-                            new_power = max(1, int(power) - treshold)
-                            self.opponent.hand[i] = f"{element} {new_power}"
-                    except (ValueError, IndexError) as e:
-                        print(e)
-                        continue
-                print(f"{Style.BRIGHT}ПОРОГОВЫЙ ЭФФЕКТ (>= 9): {rgb}«ПОРЧА»{reset}. Все карты противника теряют {italic}{treshold} ед. силы")
+            dirt_cards = deck.draw_cards(lvl+1, player=self.opponent)
+            for i in range(len(dirt_cards)):
+                card = dirt_cards[i]
+                card_lvl = int(card.split()[1])
+                dirt_cards[i] = f'ГРЯЗЬ {max(1, card_lvl // 2)}'
+            self.opponent.hand.extend(dirt_cards)
 
             if self.is_shell_shocked:
                 heads_or_tails = random.randint(0, 1)
@@ -703,7 +704,7 @@ class Player:
             if not cyclone:
                 self.opponent.last_effect = "СЛЕПОТА"
                 print(f"Вы применили заклинание {Style.BRIGHT}{RGBs[0]}«{spell} {roman[str(lvl)]}»")
-                print(f"{Style.BRIGHT}ПАССИВНАЯ СПОСОБНОСТЬ: {RGBs[1]}«ДЫХАНИЕ ДРАКОНА»{reset}. Все карты {italic}{get_color('ВОЗДУХ')}ВОЗДУХА{reset} в вашей руке получают {italic}+{add_power} к силе")
+                print(f"{Style.BRIGHT}ПАССИВНЫЙ ЭФФЕКТ: {RGBs[1]}«ДЫХАНИЕ ДРАКОНА»{reset}. Все карты {italic}{get_color('ВОЗДУХ')}ВОЗДУХА{reset} в вашей руке получают {italic}+{add_power} к силе")
                 print(f"{Style.BRIGHT}ШТРАФ:{reset} Накладывает на противника эффект «СЛЕПОТА», из-за чего он перестает видеть {italic}{lvl} шт. карт{reset} и не может их использовать в течение следующего хода")
 
             if self.is_shell_shocked and not cyclone:
@@ -894,7 +895,7 @@ class Player:
             rgb = '\033[38;2;179;129;50m'
             print(f"Вы применили заклинание {Style.BRIGHT}{rgb}«{spell} {roman[str(lvl)]}»")
             print(f"{Style.BRIGHT}ШТРАФ:{reset} Противник сбрасывает все карты {italic}силы {lvl + 1}{reset} или меньше")
-            print(f"{Style.BRIGHT}ОТРАЖЕНО:{reset} Урон карт противника от атак снижается на {italic}{lvl + 1} ед.{reset} на следующем ходу")
+            print(f"{Style.BRIGHT}ОТРАЖЕНО:{reset} {rgb}«КОРРОЗИЯ»{reset}. Все карты противника теряют {italic}{math.ceil(lvl / 2)}{reset} ед. силы")
 
             if self.is_shell_shocked:
                 heads_or_tails = random.randint(0, 1)
