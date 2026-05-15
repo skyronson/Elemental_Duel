@@ -26,7 +26,9 @@ class Player:
         self.hand = []                                   # Карты в руке
         self.max_hp = 50                                 # Максимальное количество здоровья
         self.hp = 50                                     # Текущее количество здоровья
+        self.hp_before = 50                              # Количество здоровья до атаки
         self.power_coeff = 1                             # Множитель силы, снижается эффектом «ИСТОЩЕНИЕ»
+        self.max_cards = 12                              # Максимально возможное число карт в руке
         self.status_effects = []                         # Эффекты, наложенные на игрока
         self.status_effects_bar = set()                  # Шкала имеющихся эффектов
         self.last_move = []                              # Последний ход игрока
@@ -89,9 +91,9 @@ class Player:
                 print(f"{Style.BRIGHT}{cyclone_rgb}«ЦИКЛОН»{reset} вызвал заклинание {Style.BRIGHT}{RGBs[spell]}«{spell} {roman[str(lvl)]}»{reset}. Осталось: {italic}{duration} {case}")
 
                 if spell == "ГЕЙЗЕР":
-                    self.opponent.cast_spell(spell, lvl * 4, cyclone=True)
+                    self.opponent.cast_spell(spell, lvl * 4, deck, moves_counter, cyclone=True)
                 else:
-                    self.opponent.cast_spell(spell, lvl * 7, cyclone=True)
+                    self.opponent.cast_spell(spell, lvl * 7, deck, moves_counter, cyclone=True)
                 idx = self.status_effects.index(effect)
                 self.status_effects[idx] = f"ЦИКЛОН {duration - 1}"
 
@@ -359,6 +361,7 @@ class Player:
                     self.opponent.status_effects.remove(effect)
 
             self.last_move = cards
+            self.opponent.hp_before = self.opponent.hp
             self.opponent.hp -= pure_dmg
             print(f'Вы нанесли противнику {italic}{pure_dmg} ед. урона')
 
@@ -389,7 +392,7 @@ class Player:
             else:
                 print(color + card, end='')
         print()
-        show_player_state(self, moves_counter)
+        show_player_state(self, moves_counter, defense=True)
 
         while True:
             nums = input("\nВЫБЕРИТЕ КАРТЫ, ЧТОБЫ ЗАЩИТИТЬСЯ:\n").strip()
@@ -566,6 +569,7 @@ class Player:
 
         elif spell == "ОГНЕННЫЙ ШАР":
             lvl = round(((dmg - 1) // 4 + 1) * self.power_coeff)
+            self.opponent.hp_before -= lvl
             self.opponent.hp -= lvl
             self.opponent.last_effect = "None"
             rgb = '\033[38;2;255;199;18m'
@@ -842,8 +846,8 @@ class Player:
             case = "ход" if lvl == 1 else "хода"
             rgb = '\033[38;2;120;122;89m'
             print(f"Вы применили заклинание {Style.BRIGHT}{rgb}«{spell} {roman[str(lvl)]}»")
-            print(f"{Style.BRIGHT}ОТРАЖЕНО:{reset} Накладывает на противника «ИСТОЩЕНИЕ» {italic}{round(exhaustion * 100)}% на {duration} {case}")
             print(f"{Style.BRIGHT}ШТРАФ:{reset} Противник пропускает ход")
+            print(f"{Style.BRIGHT}ОТРАЖЕНО:{reset} Накладывает на противника «ИСТОЩЕНИЕ» {italic}{round(exhaustion * 100)}% на {duration} {case}")
 
             if self.is_shell_shocked:
                 heads_or_tails = random.randint(0, 1)

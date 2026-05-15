@@ -17,14 +17,12 @@ class Deck:
     # Функция для безопасного взятия карт из колоды
     def draw_cards(self, count, player=None):
         drawn = []
-        new = 0
         for i in range(count):
             if len(self.deck) == 0:
                 self.refill_deck()  # Перезаполняем колоду если она пустая
             if len(self.deck) > 0:
-                if player and not is_hand_full(player.hand + [1 for _ in range(new)]):
+                if player and not is_hand_full(player):
                     drawn.append(self.deck.pop())
-                    new += 1
                 else:
                     break
         return drawn

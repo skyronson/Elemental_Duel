@@ -4,7 +4,7 @@ from colorama import Fore
 from utils.data_loader import load_elements
 
 def heal(target, value):
-    if target.hp + value > target.max_hp:
+    if target.hp + value >= target.max_hp:
         target.hp = target.max_hp
     else:
         target.hp += value
@@ -31,10 +31,11 @@ def parse_effect(effect_str):
         lvl = 0
     return name, lvl
 
-def is_hand_full(hand):
-    limiter = 12
-    if len(hand) >= limiter:
-        print(f"\nКОЛИЧЕСТВО КАРТ В РУКЕ НЕ МОЖЕТ БЫТЬ БОЛЬШЕ {limiter}!")
+def is_hand_full(player):
+    hand = player.hand
+    limit = player.max_cards
+    if len(hand) >= limit:
+        print(f"\nКОЛИЧЕСТВО КАРТ В РУКЕ НЕ МОЖЕТ БЫТЬ БОЛЬШЕ {limit}!")
         return True
     else:
         return False

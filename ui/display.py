@@ -3,11 +3,29 @@ from utils.helpers import get_color
 from utils.data_loader import load_elements
 import random
 import time
+# import pyttsx3 as pt
+
 
 
 init(autoreset=True)
 italic = '\033[3m'
 reset = '\033[0;0m'
+
+
+# def speak(text):
+#     engine = pt.init()  # ← Создаём НОВЫЙ движок каждый раз
+#     engine.setProperty('rate', 220)
+#
+#     # Выбираем русский голос (если нужно)
+#     voices = engine.getProperty('voices')
+#     for v in voices:
+#         if 'ru' in str(v.languages).lower() or 'russian' in v.name.lower():
+#             engine.setProperty('voice', v.id)
+#             break
+#
+#     engine.say(text)
+#     engine.runAndWait()
+#     engine.stop()  # явно останавливаем
 
 
 def show_new_cards_message(new_cards):
@@ -25,14 +43,18 @@ def show_new_cards_message(new_cards):
         print("\nКАЖДЫЙ ИГРОК ПОЛУЧАЕТ ДО 10 НОВЫХ КАРТ")
 
 
-def show_player_state(player, moves_counter):
-    colors = load_elements()['colors']
-    print(f"\n{moves_counter}. {'-'*20} {player.name} {'-'*300}\n")
+def show_player_state(player, moves_counter, defense=False):
+    color = ""
+    if moves_counter % 2 != 0:
+        color = '\033[38;2;190;0;255m'
+    else:
+        color = '\033[38;2;255;135;0m'
+    print(f"\n{color}{moves_counter}. {'-'*20} {player.name} {'-'*300}\n")
 
     hand = player.hand
     amount = len(hand)
     arr = list(map(str, range(1, amount + 1)))
-    sym = " "
+    sym = ' '
 
     for card in hand:
         length = len(card)
@@ -47,9 +69,18 @@ def show_player_state(player, moves_counter):
         col = get_color(card)
         print(f"{col}{card}", end='  ')
 
+    string = ""
+    hp_color_1 = '\033[38;2;66;232;9m'
+    hp_color_2 = '\033[38;2;240;10;10m'
+
+    if defense:
+        string = f"\nЗДОРОВЬЕ: {hp_color_1}{player.hp_before}{reset} -> {hp_color_2}{player.hp}{reset}"
+    else:
+        string = f"\nЗДОРОВЬЕ: {hp_color_1}{player.hp}"
+
     print("\n")
-    print(f"\nЗДОРОВЬЕ: {player.hp}")
-    print("\n{:-^323}".format(""))
+    print(string)
+    print(f"\n{color}{'-'*330}")
 
 
 def show_combat_message(attacker, elements_used):
@@ -68,7 +99,9 @@ def show_combat_message(attacker, elements_used):
             f"🔥 {attacker.name} поджарил вам пятую точку!",
 
         ]
-        print(f"{Fore.RED}{random.choice(fire_messages)}{reset}")
+        random_phrase = random.choice(fire_messages)
+        print(f"{Fore.RED}{random_phrase}{reset}")
+        # speak(random_phrase[1:])
 
     # Комбинации с ВОДОЙ
     if all(map(lambda x: x == "ВОДА", elements_used)) and len(set(elements_used)) == 1:
@@ -80,7 +113,9 @@ def show_combat_message(attacker, elements_used):
             f"💧 {attacker.name} решил вас 'освежить'!",
             f"💧 {attacker.name} запустил вам в лицо водяной пистолет!"
         ]
-        print(f"{Fore.BLUE}{random.choice(water_messages)}{reset}")
+        random_phrase = random.choice(water_messages)
+        print(f"{Fore.BLUE}{random_phrase}{reset}")
+        # speak(random_phrase[1:])
 
     # Комбинации с ВОЗДУХОМ
     if all(map(lambda x: x == "ВОЗДУХ", elements_used)) and len(set(elements_used)) == 1:
@@ -91,7 +126,9 @@ def show_combat_message(attacker, elements_used):
             f"💨 {attacker.name} решил проветрить ваши мозги!",
             f"💨 {attacker.name} устроил вам внеплановую сушку феном!"
         ]
-        print(f"{Fore.YELLOW}{random.choice(air_messages)}{reset}")
+        random_phrase = random.choice(air_messages)
+        print(f"{Fore.YELLOW}{random_phrase}{reset}")
+        # speak(random_phrase[1:])
 
     # Комбинации с ЗЕМЛЕЙ
     if all(map(lambda x: x == "ЗЕМЛЯ", elements_used)) and len(set(elements_used)) == 1:
@@ -102,63 +139,65 @@ def show_combat_message(attacker, elements_used):
             f"🌱 {attacker.name} решил вас 'заземлить'!",
             f"🌱 {attacker.name} подкинул вам грязи в ботинки!"
         ]
-        print(f"{Fore.GREEN}{random.choice(earth_messages)}{reset}")
+        random_phrase = random.choice(earth_messages)
+        print(f"{Fore.GREEN}{random_phrase}{reset}")
+        # speak(random_phrase[1:])
 
     spell_messages = {
         'ЦУНАМИ': [
-            f"🌊 {attacker.name} устроил(а) вам стирку без порошка!",
-            f"🌊 {attacker.name} запустил(а) в вас аквадискотеку!",
+            f"🌊 {attacker.name} устроил вам стирку без порошка!",
+            f"🌊 {attacker.name} запустил в вас аквадискотеку!",
             f"🌊 От {attacker.opponent.name} пахнет морской болезнью!"
         ],
         'ГРЯЗЕВОЙ ПОТОП': [
-            f"🦨 {attacker.name} испачкал(а) вам белые штаны!",
-            f"🦨 {attacker.name} устроил(а) вам грязевые ванны!",
+            f"🦨 {attacker.name} испачкал вам белые штаны!",
+            f"🦨 {attacker.name} устроил вам грязевые ванны!",
             f"🦨 От {attacker.opponent.name} пахнет весной в деревне!"
         ],
         'ГЕЙЗЕР': [
-            f"💦 {attacker.name} устроил(а) вам внезапный фонтан!",
-            f"💦 {attacker.name} запустил(а) паровую баню!",
+            f"💦 {attacker.name} устроил вам внезапный фонтан!",
+            f"💦 {attacker.name} запустил паровую баню!",
             f"💦 От {attacker.opponent.name} пахнет бассейном и хлоркой!"
         ],
         'МОЛНИЯ': [
-            f"⚡ {attacker.name} устроил(а) вам пытку на электрическом стуле!",
-            f"⚡ {attacker.name} зарядил(а) вас как батарейку!",
+            f"⚡ {attacker.name} устроил вам пытку на электрическом стуле!",
+            f"⚡ {attacker.name} зарядил вас как батарейку!",
             f"⚡ От {attacker.opponent.name} пахнет жареной котлетой!"
         ],
         'ТОРНАДО': [
-            f"🌪️ {attacker.name} устроил(а) вам денежный вихрь из ваших же денег!",
-            f"🌪️ {attacker.name} запутал(а) все ваши мысли!",
+            f"🌪️ {attacker.name} устроил вам денежный вихрь из ваших же денег!",
+            f"🌪️ {attacker.name} запутал все ваши мысли!",
             f"🌪️ От {attacker.opponent.name} пахнет пылью и хаосом!"
         ],
         'МЕТЕОР': [
-            f"☄️ {attacker.name} сбросил(а) на вас космический мусор!",
-            f"☄️ {attacker.name} устроил(а) звездопад по голове!",
-            f"☄️ {attacker.name} запустил(а) в вас Звезду Смерти",
+            f"☄️ {attacker.name} сбросил на вас космический мусор!",
+            f"☄️ {attacker.name} устроил звездопад по голове!",
+            f"☄️ {attacker.name} запустил в вас Звезду Смерти",
             f"☄️ От {attacker.opponent.name} пахнет метеоритной пылью!"
         ],
         'ЛАВИНА': [
-            f"🏔️ {attacker.name} засыпал(а) вас снежинками!",
-            f"🏔️ {attacker.name} устроил(а) зимние игры в июле!",
+            f"🏔️ {attacker.name} засыпал вас снежинками!",
+            f"🏔️ {attacker.name} устроил зимние игры в июле!",
             f"🏔️ От {attacker.opponent.name} пахнет мятным леденцом и холодком!"
         ],
         'ЦИКЛОН': [
-            f"🌀 {attacker.name} запустил(а) вас в центрифугу!",
-            f"🌀 {attacker.name} устроил(а) карусель из ваших мозгов!",
+            f"🌀 {attacker.name} запустил вас в центрифугу!",
+            f"🌀 {attacker.name} устроил карусель из ваших мозгов!",
             f"🌀 От {attacker.opponent.name} пахнет вертолетом и тошнотой!"
         ],
         'НАПАЛМ': [
-            f"💥 {attacker.name} устроил(а) вам вьетнамские джунгли!",
-            f"💥 {attacker.name} поджарил(а) вас со всех сторон!",
+            f"💥 {attacker.name} устроил вам вьетнамские джунгли!",
+            f"💥 {attacker.name} поджарил вас со всех сторон!",
             f"💥 От {attacker.opponent.name} пахнет бензином и приключениями!"
         ],
         'ЗЕМЛЕТРЯСЕНИЕ': [
-            f"🏚️ {attacker.name} потанцевал(а) на вашем полу!",
-            f"🏚️ {attacker.name} устроил(а) тест на сейсмоустойчивость!",
+            f"🏚️ {attacker.name} потанцевал на вашем полу!",
+            f"🏚️ {attacker.name} устроил тест на сейсмоустойчивость!",
             f"🏚️ От {attacker.opponent.name} пахнет пылью и ремонтом!"
         ],
         'ВЕЛИКАЯ КВИНТЭССЕНЦИЯ': [
-            f"🌈 {attacker.name} устроил(а) магический фейерверк!",
-            f"🌈 {attacker.name} показал(а) вам все цвета радуги!",
+            f"🌈 {attacker.name} устроил магический фейерверк!",
+            f"🌈 {attacker.name} показал вам все цвета радуги!",
             f"🌈 От {attacker.opponent.name} пахнет волшебством и нафталином!"
         ]
     }
@@ -170,7 +209,10 @@ def show_combat_message(attacker, elements_used):
             spell = combination[0]
 
     if spell in spell_messages:
-        print(f"{Style.BRIGHT}{random.choice(spell_messages[spell])}{reset}")
+        random_phrase = random.choice(spell_messages[spell])
+        print(f"{Style.BRIGHT}{random_phrase}{reset}")
+        # speak(random_phrase[1:])
+
 
 
 def show_end_game_message(loser, new_points):
