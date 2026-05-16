@@ -31,11 +31,12 @@ def parse_effect(effect_str):
         lvl = 0
     return name, lvl
 
-def is_hand_full(player):
+def is_hand_full(player, new_count, message=True):
     hand = player.hand
     limit = player.max_cards
-    if len(hand) >= limit:
-        print(f"\nКОЛИЧЕСТВО КАРТ В РУКЕ НЕ МОЖЕТ БЫТЬ БОЛЬШЕ {limit}!")
+    if len(hand) + new_count >= limit:
+        if message:
+            print(f"\nКОЛИЧЕСТВО КАРТ В РУКЕ НЕ МОЖЕТ БЫТЬ БОЛЬШЕ {limit}!")
         return True
     else:
         return False

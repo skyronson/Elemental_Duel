@@ -8,6 +8,7 @@ def main():
     elems = load_elements()
     roman = load_roman()
 
+
     # Создание колоды
     deck_obj = Deck()
     deck_obj.create_deck()
@@ -21,11 +22,12 @@ def main():
     p2.set_name()
 
     # Раздача стартовых карт
-    for _ in range(8):
-        p1.hand.append(deck_obj.deck.pop())
-        p2.hand.append(deck_obj.deck.pop())
-    for _ in range(2):
-        p2.hand.append(deck_obj.deck.pop())
+    cards_1 = deck_obj.draw_cards(6, player=p1)
+    p1.hand.extend(cards_1)
+    p1.hand.extend(['ОГОНЬ 10', 'ВОДА 10', 'ВОЗДУХ 10', 'ОГОНЬ 10', 'ВОДА 10', 'ВОЗДУХ 10'])
+    cards_2 = deck_obj.draw_cards(10, player=p2)
+    p2.hand.extend(cards_2)
+
 
     engine = GameEngine(p1, p2, deck_obj, combos, roman, elems["colors"])
     engine.run()

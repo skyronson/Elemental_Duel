@@ -22,6 +22,7 @@ reset = '\033[0;0m'
 
 class Player:
     def __init__(self):
+        self.id = 0                                      # Порядковый номер игрока (0 или 1)
         self.name = ''                                   # Имя игрока
         self.hand = []                                   # Карты в руке
         self.max_hp = 50                                 # Максимальное количество здоровья
@@ -39,6 +40,7 @@ class Player:
 
 
     def set_name(self):
+        self.id = 0 if not self.opponent.name else 1
         name = input("Введите имя игрока: ")
         if name.strip():
             self.name = name
@@ -47,7 +49,6 @@ class Player:
                 self.name = "Игрок_1"
             else:
                 self.name = "Игрок_2"
-
 
 
     def update_status(self, is_defended, deck, moves_counter):
@@ -73,29 +74,36 @@ class Player:
             effect = self.status_effects[idx]
             duration = int(effect.split()[1])
 
-            if duration == 0:
-                print(f"\n{Style.BRIGHT}{cyclone_rgb}«ЦИКЛОН»{reset} прекратил своё существование")
-                self.status_effects.remove(effect)
-            else:
-                spells = ["ЦУНАМИ", "ГЕЙЗЕР", "МОЛНИЯ"]
-                lvls = [0, 1, 2, 3]
-                RGBs = {
-                    "ЦУНАМИ": '\033[38;2;72;89;240m',
-                    "ГЕЙЗЕР": '\033[38;2;204;229;255m',
-                    "МОЛНИЯ": '\033[38;2;230;210;20m'
-                }
-                spell = random.choice(spells)
-                lvl = random.choice(lvls + ([4, 5] if spell == "ГЕЙЗЕР" else []))
+            spells = ["ЦУНАМИ", "ГЕЙЗЕР", "МОЛНИЯ"]
+            lvls = [0, 1, 2, 3]
+            RGBs = {
+                "ЦУНАМИ": '\033[38;2;72;89;240m',
+                "ГЕЙЗЕР": '\033[38;2;204;229;255m',
+                "МОЛНИЯ": '\033[38;2;230;210;20m'
+            }
+            spell = random.choice(spells)
+            lvl = random.choice(lvls + ([4, 5] if spell == "ГЕЙЗЕР" else []))
 
-                case = "ход" if duration == 1 else "хода"
-                print(f"{Style.BRIGHT}{cyclone_rgb}«ЦИКЛОН»{reset} вызвал заклинание {Style.BRIGHT}{RGBs[spell]}«{spell} {roman[str(lvl)]}»{reset}. Осталось: {italic}{duration} {case}")
-
+            def cast_cyclone_spell():
                 if spell == "ГЕЙЗЕР":
                     self.opponent.cast_spell(spell, lvl * 4, deck, moves_counter, cyclone=True)
                 else:
                     self.opponent.cast_spell(spell, lvl * 7, deck, moves_counter, cyclone=True)
+
+            if duration > 1:
+                cast_cyclone_spell()
+                case = 'хода' if (duration - 1) >= 2 else 'ход'
+                print(
+                    f"{Style.BRIGHT}{cyclone_rgb}«ЦИКЛОН»{reset} вызвал заклинание {Style.BRIGHT}{RGBs[spell]}«{spell} {roman[str(lvl)]}»{reset}. Осталось: {italic}{duration - 1} {case}")
                 idx = self.status_effects.index(effect)
                 self.status_effects[idx] = f"ЦИКЛОН {duration - 1}"
+            else:
+                cast_cyclone_spell()
+                print(
+                    f"{Style.BRIGHT}{cyclone_rgb}«ЦИКЛОН»{reset} вызвал заклинание {Style.BRIGHT}{RGBs[spell]}«{spell} {roman[str(lvl)]}»{reset} (последний ход)")
+                print(f"{Style.BRIGHT}{cyclone_rgb}«ЦИКЛОН»{reset} прекратил своё существование")
+                self.status_effects.remove(effect)
+
 
         if self.hp <= 0:
             return {"skip_turn": False, "game_over": True}
@@ -303,7 +311,7 @@ class Player:
 
         elif moves_counter % 10 == 0:
             # Игрок берет карты
-            new_cards = deck.draw_cards(10, player=self)
+            new_cards = deck.draw_cards(10, player=self, message=False)
             self.hand.extend(new_cards)
             # Противник тоже берет карты
             opponent_cards = deck.draw_cards(10, player=self.opponent)
