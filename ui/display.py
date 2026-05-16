@@ -44,11 +44,14 @@ def show_new_cards_message(new_cards):
 
 
 def show_player_state(player, moves_counter, defense=False):
-    color = ""
-    if moves_counter % 2 != 0:
-        color = '\033[38;2;190;0;255m'
+    color = None
+    if not(player.color):
+        if player.id == 0:
+            color = '\033[38;2;190;0;255m'  # PURPLE
+        else:
+            color = '\033[38;2;255;135;0m'  # ORANGE
     else:
-        color = '\033[38;2;255;135;0m'
+        color = player.color
     print(f"\n{color}{moves_counter}. {'-'*20} {player.name} {'-'*300}\n")
 
     hand = player.hand

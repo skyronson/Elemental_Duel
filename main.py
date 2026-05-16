@@ -18,13 +18,12 @@ def main():
     p2 = Player()
     p1.opponent = p2
     p2.opponent = p1
-    p1.set_name()
-    p2.set_name()
+    p1.set_params()
+    p2.set_params()
 
     # Раздача стартовых карт
-    cards_1 = deck_obj.draw_cards(6, player=p1)
+    cards_1 = deck_obj.draw_cards(8, player=p1)
     p1.hand.extend(cards_1)
-    p1.hand.extend(['ОГОНЬ 10', 'ВОДА 10', 'ВОЗДУХ 10', 'ОГОНЬ 10', 'ВОДА 10', 'ВОЗДУХ 10'])
     cards_2 = deck_obj.draw_cards(10, player=p2)
     p2.hand.extend(cards_2)
 

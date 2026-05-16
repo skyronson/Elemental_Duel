@@ -10,6 +10,7 @@ from colorama import init, Fore, Back, Style
 from ui.display import show_combat_message, show_player_state, show_new_cards_message, show_end_game_message
 from utils.data_loader import load_elements, load_combinations, load_roman
 from utils.helpers import heal, get_color
+from data.player_colors import COLORS
 
 
 colors = load_elements()['colors']
@@ -37,10 +38,12 @@ class Player:
         self.is_shell_shocked = False                    # Статус эффекта «КОНТУЗИЯ»
         self.spells_counter = 0                          # Счётчик успешно применённых заклинаний
         self.opponent = None                             # Указатель на противника
+        self.color = None
 
 
-    def set_name(self):
+    def set_params(self):
         self.id = 0 if not self.opponent.name else 1
+
         name = input("Введите имя игрока: ")
         if name.strip():
             self.name = name
@@ -49,6 +52,8 @@ class Player:
                 self.name = "Игрок_1"
             else:
                 self.name = "Игрок_2"
+
+        self.color = COLORS.pop(random.randint(0, len(COLORS)-1))
 
 
     def update_status(self, is_defended, deck, moves_counter):
