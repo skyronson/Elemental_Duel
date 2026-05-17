@@ -9,7 +9,7 @@ import time
 from colorama import init, Fore, Back, Style
 from ui.display import show_combat_message, show_player_state, show_new_cards_message, show_end_game_message
 from utils.data_loader import load_elements, load_combinations, load_roman
-from utils.helpers import heal, get_color
+from utils.helpers import heal, deal_dmg, get_color
 from data.player_colors import COLORS
 
 
@@ -28,7 +28,7 @@ class Player:
         self.hand = []                                   # Карты в руке
         self.max_hp = 50                                 # Максимальное количество здоровья
         self.hp = 50                                     # Текущее количество здоровья
-        self.hp_before = 50                              # Количество здоровья до атаки
+        self.hp_before = self.hp                         # Количество здоровья до атаки
         self.power_coeff = 1                             # Множитель силы, снижается эффектом «ИСТОЩЕНИЕ»
         self.max_cards = 12                              # Максимально возможное число карт в руке
         self.status_effects = []                         # Эффекты, наложенные на игрока
@@ -59,6 +59,12 @@ class Player:
     def update_status(self, is_defended, deck, moves_counter):
         skip_turn = False
         game_over = False
+
+        if self.hp <= 0:
+            return {
+                "skip_turn": skip_turn,
+                "game_over": True,
+            }
 
         print("\n")
 
@@ -316,10 +322,10 @@ class Player:
 
         elif moves_counter % 10 == 0:
             # Игрок берет карты
-            new_cards = deck.draw_cards(10, player=self, message=False)
+            new_cards = deck.draw_cards(10, player=self)
             self.hand.extend(new_cards)
             # Противник тоже берет карты
-            opponent_cards = deck.draw_cards(10, player=self.opponent)
+            opponent_cards = deck.draw_cards(10, player=self.opponent, message=False)
             self.opponent.hand.extend(opponent_cards)
             show_new_cards_message(new_cards)
 
@@ -394,6 +400,9 @@ class Player:
 
 
     def defend(self, moves_counter):
+        if self.hp_before <= 0:
+            return False
+
         if len(self.opponent.last_move) == 0:
             return
 
@@ -582,8 +591,7 @@ class Player:
 
         elif spell == "ОГНЕННЫЙ ШАР":
             lvl = round(((dmg - 1) // 4 + 1) * self.power_coeff)
-            self.opponent.hp_before -= lvl
-            self.opponent.hp -= lvl
+            deal_dmg(self.opponent, lvl)
             self.opponent.last_effect = "None"
             rgb = '\033[38;2;255;199;18m'
             print(f"Вы применили заклинание {Style.BRIGHT}{rgb}«{spell} {roman[str(lvl)]}»")
@@ -808,14 +816,14 @@ class Player:
 
             if treshold and lvl != 0:
                 magic_dmg = math.ceil((len(list(filter(lambda x: "ВОДА" in x, self.opponent.hand)))) * 1.5)
-                self.opponent.hp -= magic_dmg
+                deal_dmg(self.opponent, magic_dmg)
                 print(f"{Style.BRIGHT}ПОРОГОВЫЙ ЭФФЕКТ (>= 9): {rgb}«ЭЛЕКТРИЧЕСКАЯ ЦЕПЬ»{reset}. Наносит {italic}1.5-2 ед. урона{reset} противнику за каждую карту {italic}{get_color('ВОДА')}ВОДЫ{reset} в его руке. Итого: {italic}{magic_dmg} ед. урона")
 
             if self.is_shell_shocked and not cyclone:
                 heads_or_tails = random.randint(0, 1)
                 if heads_or_tails:
                     magic_dmg = len(self.last_move) * lvl
-                    self.hp -= magic_dmg
+                    deal_dmg(self.opponent, magic_dmg)
                     print(f"Вы случайно применили заклинание {Style.BRIGHT}{rgb}«{spell} {roman[str(lvl)]}»{reset} на самого себя")
 
 

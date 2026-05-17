@@ -31,7 +31,7 @@ class GameEngine:
             )
 
             if status_result["game_over"]:
-                self.end_game(current)
+                self.end_game(loser=current)
                 return
 
             if status_result["skip_turn"]:
@@ -125,10 +125,11 @@ class GameEngine:
         try:
             from utils.data_loader import load_scoreboard, load_to_scoreboard
             import pandas as pd
-            from ui.display import show_end_game_message
+            from ui.display import show_end_game_message, ask_question_about_showing_scoreboard
             data = load_scoreboard()
-            new_points = 25 + (3 - self.moves_counter // 10) + (loser.opponent.hp // 10) + (
+            given_points = 25 + (3 - self.moves_counter // 10) + (loser.opponent.hp // 10) + (
                         loser.opponent.spells_counter // 5)
+            taken_points = 20
 
             players = [
                 {'name': loser.opponent.name, 'is_winner': True},
@@ -158,9 +159,9 @@ class GameEngine:
                 data.at[idx, 'Matches'] += 1
                 if is_winner:
                     data.at[idx, 'Victories'] += 1
-                    data.at[idx, 'Rating'] += new_points
+                    data.at[idx, 'Rating'] += given_points
                 else:
-                    data.at[idx, 'Rating'] = max(0, data.at[idx, 'Rating'] - 20)
+                    data.at[idx, 'Rating'] = max(0, data.at[idx, 'Rating'] - taken_points)
 
                 # Пересчет винрейта
                 victories = data.at[idx, 'Victories']
@@ -172,7 +173,9 @@ class GameEngine:
             load_to_scoreboard(data)
 
             # ... вывод сообщений ...
-            show_end_game_message(loser, new_points)
+            show_end_game_message(loser, given_points)
+            ask_question_about_showing_scoreboard()
+
 
         except Exception as e:
             print(f"Ошибка при обновлении статистики: {e}")

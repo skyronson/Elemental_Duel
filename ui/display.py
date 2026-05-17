@@ -1,6 +1,10 @@
 from colorama import init, Fore, Back, Style
 from utils.helpers import get_color
-from utils.data_loader import load_elements
+from utils.data_loader import load_elements, load_scoreboard
+from typing import Optional
+import pandas as pd
+from tabulate import tabulate
+import os
 import random
 import time
 # import pyttsx3 as pt
@@ -217,7 +221,6 @@ def show_combat_message(attacker, elements_used):
         # speak(random_phrase[1:])
 
 
-
 def show_end_game_message(loser, new_points):
     print()
     print(f"ИГРОК {loser.name} ПРОИГРАЛ")
@@ -229,3 +232,65 @@ def show_end_game_message(loser, new_points):
     print(f"ОН ПОЛУЧАЕТ +{new_points} ОЧКОВ РЕЙТИНГА")
     time.sleep(1)
     print("\n{:->20}".format(f" КОНЕЦ ИГРЫ ") + "{:-<300}\n".format(""))
+
+
+def ask_question_about_showing_scoreboard():
+    answer = input("\nПОКАЗАТЬ СТАТИСТИКУ ИГРОКОВ? ДА/НЕТ (по умолчанию: НЕТ) ")
+    agreePhrases = ["да", "Да", "ДА", "y", "Y", "yes", "Yes", "YES"]
+    disagreePhrases = ["нет", "Нет", "НЕТ", "n", "N", "no", "No", "NO"]
+    if answer in agreePhrases:
+        print_scoreboard()
+    elif answer in disagreePhrases:
+        print("Ну нет, так нет...")
+    else:
+        print("Неверный ввод")
+
+
+def print_scoreboard(
+        max_rows: Optional[int] = 100,
+        sort_by: str = "Rating",
+        reverse: bool = True
+) -> None:
+    """
+    Вывод таблицы с помощью pandas + tabulate.
+    Даёт идеальные рамки и выравнивание.
+    """
+    # Чтение CSV
+    df = load_scoreboard()
+
+    # Сортировка
+    df = df.sort_values(sort_by, ascending=not reverse)
+
+    # Ограничение строк
+    df = df.head(max_rows).reset_index(drop=True)
+
+    # Добавляем колонку с номером
+    df.insert(0, '№', range(1, len(df) + 1))
+
+    # Преобразуем Winrate в строку с % (если ещё не строка)
+    if 'Winrate' in df.columns:
+        if pd.api.types.is_numeric_dtype(df['Winrate']):
+            df['Winrate'] = df['Winrate'].astype(int).astype(str) + '%'
+
+    # Настройка типов для правильного выравнивания
+    # Числа выравниваем вправо, текст — влево
+    colalign = {
+        '№': 'center',
+        'Nickname': 'left',
+        'Matches': 'right',
+        'Victories': 'right',
+        'Winrate': 'center',
+        'Rating': 'right'
+    }
+
+    # Вывод таблицы
+    print()
+    print(tabulate(
+        df,
+        headers='keys',
+        tablefmt='outline',
+        showindex=False,
+        colalign=[colalign.get(col, 'right') for col in df.columns]
+    ))
+
+    print(f"\n📊 Показано записей: {len(df)}")

@@ -9,6 +9,12 @@ def heal(target, value):
     else:
         target.hp += value
 
+
+def deal_dmg(target, value):
+    target.hp_before -= value
+    target.hp -= value
+
+
 def get_color(card):
     colors = load_elements()["colors"]
     for elem, col in colors.items():

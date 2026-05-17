@@ -17,7 +17,7 @@ def load_roman():
     return load_json("roman.json")
 
 def load_scoreboard():
-    return pd.read_csv(os.path.join("data", 'scoreboard.csv'))
+    return pd.read_csv(os.path.join("data", 'scoreboard.csv'), encoding='utf-8')
 
 def load_to_scoreboard(data):
     data.to_csv(os.path.join("data", 'scoreboard.csv'), index=False)
